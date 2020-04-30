@@ -172,6 +172,9 @@ let print_message_table = fun out_h xml ->
   ) telemetry_types
 
 let print_process_send = fun out_h xml freq ->
+  (** Print number of processes *)
+  fprintf out_h "\n/* Number of processes in telemetry file */\n";
+  Xml2h.define "TELEMETRY_PROCESS_NB" (string_of_int (List.length (Xml.children xml)));
   (** For each process *)
   List.iter
     (fun process ->
