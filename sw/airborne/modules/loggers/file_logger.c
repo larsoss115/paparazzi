@@ -36,6 +36,7 @@
 #include "mcu_periph/sys_time.h"
 #include "state.h"
 #include "firmwares/rotorcraft/stabilization.h"
+#include "firmwares/rotorcraft/stabilization/stabilization_attitude_quat_int.h"
 
 
 /** Set the default File logger path to the USB drive */
@@ -61,7 +62,14 @@ static void file_logger_write_header(FILE *file) {
   fprintf(file, "vel_x,vel_y,vel_z,");
   fprintf(file, "att_phi,att_theta,att_psi,");
   fprintf(file, "rate_p,rate_q,rate_r,");
-  fprintf(file, "cmd_thrust,cmd_roll,cmd_pitch,cmd_yaw\n");
+  fprintf(file, "cur_quad_i,cur_quad_x,cur_quad_y,cur_quad_z,");
+  fprintf(file, "ref_quad_i,ref_quad_x,ref_quad_y,ref_quad_z,");
+  fprintf(file, "quad_err_x_tt,quad_err_y_tt,quad_err_z_tt,");
+  fprintf(file, "quad_err_x_tt_i,quad_err_y_tt_i,quad_err_z_tt_i,");
+  fprintf(file, "quad_err_x,quad_err_y,quad_err_z,");
+  fprintf(file, "cmd_thrust,cmd_roll,cmd_pitch,cmd_yaw,");
+  fprintf(file, "rates_ref_p,rates_ref_q,rates_ref_r,");
+  fprintf(file, "rates_err_p,rates_err_p,rates_err_p\n");
 }
 
 /** Write CSV row
@@ -75,15 +83,23 @@ static void file_logger_write_row(FILE *file) {
   struct NedCoor_f *vel = stateGetSpeedNed_f();
   struct FloatEulers *att = stateGetNedToBodyEulers_f();
   struct FloatRates *rates = stateGetBodyRates_f();
+  struct FloatQuat *att_quat_f = stateGetNedToBodyQuat_f();
 
   fprintf(file, "%f,", get_sys_time_float());
   fprintf(file, "%f,%f,%f,", pos->x, pos->y, pos->z);
   fprintf(file, "%f,%f,%f,", vel->x, vel->y, vel->z);
   fprintf(file, "%f,%f,%f,", att->phi, att->theta, att->psi);
   fprintf(file, "%f,%f,%f,", rates->p, rates->q, rates->r);
-  fprintf(file, "%d,%d,%d,%d\n",
+  fprintf(file, "%f,%f,%f,%f,", att_quat_f->qi, att_quat_f->qx, att_quat_f->qy, att_quat_f->qz);
+  fprintf(file, "%f,%f,%f,%f,", att_ref_quat_f.qi, att_ref_quat_f.qx, att_ref_quat_f.qy, att_ref_quat_f.qz);
+  fprintf(file, "%f,%f,%f,", att_err_f.qx, att_err_f.qy, att_err_f.qz);
+  fprintf(file, "%d,%d,%d,", att_err_i_log.qx, att_err_i_log.qy, att_err_i_log.qz);
+  fprintf(file, "%d,%d,%d,", att_err_log.qx, att_err_log.qy, att_err_log.qz);
+  fprintf(file, "%d,%d,%d,%d,",
       stabilization_cmd[COMMAND_THRUST], stabilization_cmd[COMMAND_ROLL],
       stabilization_cmd[COMMAND_PITCH], stabilization_cmd[COMMAND_YAW]);
+  fprintf(file, "%d,%d,%d,", rate_ref_scaled_log.p, rate_ref_scaled_log.q, rate_ref_scaled_log.r);
+  fprintf(file, "%d,%d,%d\n", rate_err_log.p, rate_err_log.q, rate_err_log.r);
 }
 
 
