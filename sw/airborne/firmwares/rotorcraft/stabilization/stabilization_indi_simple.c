@@ -105,7 +105,7 @@ struct IndiVariables indi = {
   .max_rate = STABILIZATION_INDI_MAX_RATE,
   .tt_angle_offset = TILT_TWIST_ANGLE_OFFSET,
   .attitude_max_yaw_rate = STABILIZATION_INDI_MAX_R,
-  .theta_change = THETA_CHANGE,	
+  .theta_change = THETA_CHANGE,
 
   .g1 = {STABILIZATION_INDI_G1_P, STABILIZATION_INDI_G1_Q, STABILIZATION_INDI_G1_R},
   .g2 = STABILIZATION_INDI_G2_R,
@@ -169,7 +169,7 @@ static void send_att_indi(struct transport_tx *trans, struct link_device *dev)
 static void send_QUATS(struct transport_tx *trans, struct link_device *dev)
 {
   struct FloatQuat *quat = stateGetNedToBodyQuat_f();
-  struct FloatEuler *att_eul = stateGetNedToBodyEulers_f();
+  struct FloatEulers *att_eul = stateGetNedToBodyEulers_f();
   int navvv_head = indi.theta_change;
   int tilt_deg = DegOfRad(att_eul->theta);
   pprz_msg_send_QUATS(trans, dev, AC_ID,
@@ -460,13 +460,13 @@ void stabilization_indi_run(bool in_flight __attribute__((unused)), bool rate_co
   struct Int32Quat att_err_i;
   struct FloatQuat *att_quat_f = stateGetNedToBodyQuat_f();
   struct Int32Quat *att_quat = stateGetNedToBodyQuat_i();
-  struct FloatEuler *att_eul = stateGetNedToBodyEulers_f();
+  struct FloatEulers *att_eul = stateGetNedToBodyEulers_f();
   QUAT_FLOAT_OF_BFP(att_ref_quat_f, stab_att_sp_quat);
   float theta_change_tt = RadOfDeg(indi.theta_change);
   tilt_twist(&att_err_f, att_quat_f, att_eul->phi , att_eul->theta, theta_change_tt , &att_ref_quat_f);
   if (indi.tilt_tw){
 		QUAT_BFP_OF_REAL(att_err,att_err_f);
-  
+
 		int32_quat_inv_comp(&att_err_i, att_quat, &stab_att_sp_quat);
 		/* wrap it in the shortest direction       */
 		int32_quat_wrap_shortest(&att_err);
@@ -480,7 +480,7 @@ void stabilization_indi_run(bool in_flight __attribute__((unused)), bool rate_co
 			switch_tilt_twist = false;
 		}
 		QUAT_BFP_OF_REAL(att_err_i,att_err_f);
-  
+
 		int32_quat_inv_comp(&att_err, att_quat, &stab_att_sp_quat);
 		/* wrap it in the shortest direction       */
 		int32_quat_wrap_shortest(&att_err);
@@ -489,7 +489,7 @@ void stabilization_indi_run(bool in_flight __attribute__((unused)), bool rate_co
   }
   QUAT_COPY(att_err_log, att_err);
   QUAT_COPY(att_err_i_log,att_err_i);
-  
+
   /* compute the INDI command */
   stabilization_indi_calc_cmd(stabilization_att_indi_cmd, &att_err, rate_control);
 
